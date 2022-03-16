@@ -25,26 +25,71 @@
             <div class="col-sm-4">
               <div class="mb-2">
                 <div class="mb-3">
-                  <label for="imageUrl" class="form-label">輸入圖片網址</label>
+                  <label for="imageUrl" class="form-label"
+                    >輸入主要圖片網址</label
+                  >
                   <input
                     type="text"
                     class="form-control"
                     placeholder="請輸入圖片連結"
+                    v-model="tempProduct.imageUrl"
                   />
                 </div>
-                <img class="img-fluid" src="" alt="" />
+                <img
+                  class="img-fluid"
+                  :src="tempProduct.imageUrl"
+                  :alt="tempProduct.title"
+                />
               </div>
-              <div>
-                <button class="btn btn-outline-primary btn-sm d-block w-100">
-                  新增圖片
-                </button>
-              </div>
-              <div>
-                <button class="btn btn-outline-danger btn-sm d-block w-100">
-                  刪除圖片
-                </button>
+              <div class="mb-3">
+                <h3>多圖新增</h3>
+                <div v-if="Array.isArray(tempProduct.imagesUrl)">
+                  <template
+                    v-for="(img, key) in tempProduct.imagesUrl"
+                    :key="key + 1"
+                  >
+                    <label for="imageUrl" class="form-label"
+                      >輸入圖片網址</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="請輸入圖片連結"
+                      v-model="tempProduct.imagesUrl[key]"
+                    />
+                    <img class="img-fluid" :src="img" :alt="img.title" />
+                  </template>
+
+                  <div
+                    v-if="
+                      !tempProduct.imagesUrl.length ||
+                      tempProduct.imagesUrl[tempProduct.imagesUrl.length - 1]
+                    "
+                  >
+                    <button
+                      class="btn btn-outline-primary btn-sm d-block w-100"
+                      @click="tempProduct.imagesUrl.push('')"
+                    >
+                      新增圖片
+                    </button>
+                  </div>
+                  <div v-else>
+                    <button
+                      class="btn btn-outline-danger btn-sm d-block w-100"
+                      @click="tempProduct.imagesUrl.pop()"
+                    >
+                      刪除圖片
+                    </button>
+                  </div>
+                </div>
+                <div v-else>
+                  <button class="btn btn-outline-primary btn-sm d-block w-100">
+                    新增圖片
+                  </button>
+                </div>
               </div>
             </div>
+
             <div class="col-sm-8">
               <div class="mb-3">
                 <label for="title" class="form-label">標題</label>
@@ -53,6 +98,7 @@
                   type="text"
                   class="form-control"
                   placeholder="請輸入標題"
+                  v-model="tempProduct.title"
                 />
               </div>
 
@@ -64,6 +110,7 @@
                     type="text"
                     class="form-control"
                     placeholder="請輸入分類"
+                    v-model="tempProduct.category"
                   />
                 </div>
                 <div class="mb-3 col-md-6">
@@ -73,6 +120,7 @@
                     type="text"
                     class="form-control"
                     placeholder="請輸入單位"
+                    v-model="tempProduct.unit"
                   />
                 </div>
               </div>
@@ -86,6 +134,7 @@
                     min="0"
                     class="form-control"
                     placeholder="請輸入原價"
+                    v-model="tempProduct.origin_price"
                   />
                 </div>
                 <div class="mb-3 col-md-6">
@@ -96,6 +145,7 @@
                     min="0"
                     class="form-control"
                     placeholder="請輸入售價"
+                    v-model="tempProduct.price"
                   />
                 </div>
               </div>
@@ -108,6 +158,7 @@
                   type="text"
                   class="form-control"
                   placeholder="請輸入產品描述"
+                  v-model="tempProduct.description"
                 >
                 </textarea>
               </div>
@@ -118,6 +169,7 @@
                   type="text"
                   class="form-control"
                   placeholder="請輸入說明內容"
+                  v-model="tempProduct.content"
                 >
                 </textarea>
               </div>
@@ -129,6 +181,7 @@
                     type="checkbox"
                     :true-value="1"
                     :false-value="0"
+                    v-model="tempProduct.is_enabled"
                   />
                   <label class="form-check-label" for="is_enabled"
                     >是否啟用</label
@@ -146,7 +199,13 @@
           >
             取消
           </button>
-          <button type="button" class="btn btn-primary">確認</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="$emit('update-products', tempProduct)"
+          >
+            確認
+          </button>
         </div>
       </div>
     </div>
@@ -154,26 +213,43 @@
 </template>
 
 <script>
-// import mixinModal from '@/mixins/mixinModal'
-import Modal from 'bootstrap/js/dist/modal'
+import mixinModal from '@/mixins/mixinModal'
+// import Modal from 'bootstrap/js/dist/modal'
 
 export default {
-  // mixins: [mixinModal],
+  mixins: [mixinModal],
+  emits: ['update-products'],
+  props: {
+    product: {
+      type: Object,
+      default() {
+        return {}
+      },
+      isNew: {
+        type: Boolean,
+        default: false
+      }
+    }
+  },
   data() {
     return {
+      tempProduct: {},
       modal: ''
     }
   },
-  methods: {
-    openModal() {
-      this.modal.show()
-    },
-    closeModal() {
-      this.modal.hide()
-    }
-  },
   mounted() {
-    this.modal = new Modal(this.$refs.modal)
+    console.log(this.tempProduct)
   }
+  // methods: {
+  //   openModal() {
+  //     this.modal.show()
+  //   },
+  //   closeModal() {
+  //     this.modal.hide()
+  //   }
+  // },
+  // mounted() {
+  //   this.modal = new Modal(this.$refs.productModal)
+  // }
 }
 </script>

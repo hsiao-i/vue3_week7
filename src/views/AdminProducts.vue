@@ -2,7 +2,9 @@
   <h2>後台產品列表</h2>
   <div class="container">
     <div class="text-end mt-4">
-      <button class="btn btn-primary" @click="openModal()">建立新的產品</button>
+      <button class="btn btn-primary" @click="openModal('new')">
+        建立新的產品
+      </button>
     </div>
     <table class="table mt-4">
       <thead>
@@ -30,7 +32,7 @@
               <button
                 type="button"
                 class="btn btn-outline-primary btn-sm"
-                @click="openModal()"
+                @click="openModal('edit', item)"
               >
                 編輯
               </button>
@@ -42,7 +44,12 @@
         </tr>
       </tbody>
     </table>
-    <ProductModal ref="productModal"></ProductModal>
+    <ProductModal
+      ref="productModal"
+      :product="tempProduct"
+      :isNew="isNew"
+      @update-products="updateProducts"
+    ></ProductModal>
   </div>
 </template>
 
@@ -56,8 +63,10 @@ export default {
   data() {
     return {
       products: [],
-      isNew: true,
-      tempProduct: {}
+      isNew: false,
+      tempProduct: {
+        imagesUrl: []
+      }
     }
   },
   methods: {
@@ -73,11 +82,12 @@ export default {
           this.$httpMessageState(err.response, '錯誤訊息')
         })
     },
-    openModal(isNew, item) {
-      if (isNew) {
+    openModal(status, item) {
+      console.log(status, item)
+      if (status === 'new') {
         this.tempProduct = {}
         this.isNew = true
-      } else {
+      } else if (status === 'edit') {
         this.tempProduct = { ...item }
         this.isNew = false
       }
@@ -85,10 +95,25 @@ export default {
       const productComponent = this.$refs.productModal
       productComponent.openModal()
     },
-    openProductModal() {}
+    updateProducts(item) {
+      this.tempProduct = item
+      this.$http
+        .post(
+          `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/product`,
+          { data: this.tempProduct }
+        )
+        .then((res) => {
+          console.log(res)
+          const productComponent = this.$refs.productModal
+          productComponent.closeModal()
+          alert('新增產品成功')
+          this.getProducts()
+        })
+    }
   },
   mounted() {
     this.getProducts()
+    console.log(this.tempProduct)
   }
 }
 </script>
