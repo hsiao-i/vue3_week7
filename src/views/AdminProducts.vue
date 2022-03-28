@@ -1,6 +1,7 @@
 <template>
   <h2>後台產品列表</h2>
   <div class="container">
+    <LoadingOverlay :active="isLoading" :z-index="1000"></LoadingOverlay>
     <div class="text-end mt-4">
       <button class="btn btn-primary" @click="openModal('new')">
         建立新的產品
@@ -36,7 +37,11 @@
               >
                 編輯
               </button>
-              <button type="button" class="btn btn-outline-danger btn-sm">
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                @click="openDelModal(item)"
+              >
                 刪除
               </button>
             </div>
@@ -47,18 +52,32 @@
     <ProductModal
       ref="productModal"
       :product="tempProduct"
-      :isNew="isNew"
+      :is-new="isNew"
       @update-products="updateProducts"
     ></ProductModal>
+    <DelModal
+      ref="delModal"
+      :delproduct="tempProduct"
+      @del-product="delProduct"
+    ></DelModal>
+    <PaginationCom
+      :page="pagination"
+      @change-page="getProducts"
+    ></PaginationCom>
   </div>
 </template>
 
 <script>
 import ProductModal from '@/components/ProductModal'
+import DelModal from '@/components/DelModal.vue'
+import PaginationCom from '@/components/PaginationCom.vue'
 
 export default {
+  inject: ['emitter'],
   components: {
-    ProductModal
+    ProductModal,
+    DelModal,
+    PaginationCom
   },
   data() {
     return {
@@ -66,20 +85,34 @@ export default {
       isNew: false,
       tempProduct: {
         imagesUrl: []
-      }
+      },
+      pagination: {},
+      currentPage: 1,
+      isLoading: false
     }
   },
   methods: {
-    getProducts() {
+    getProducts(page = 1) {
+      this.currentPage = page
+      this.isLoading = true
       this.$http
         .get(
-          `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/products/all`
+          `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/products?page=${page}`
         )
         .then((res) => {
+          console.log(res)
+          // 產品列表
           this.products = res.data.products
+          // 分頁
+          this.pagination = res.data.pagination
+          this.isLoading = false
         })
         .catch((err) => {
-          this.$httpMessageState(err.response, '錯誤訊息')
+          // this.$httpMessageState(err.response, '錯誤訊息')
+          alert('新增產品失敗')
+          alert(err.response.message)
+
+          this.isLoading = false
         })
     },
     openModal(status, item) {
@@ -95,22 +128,60 @@ export default {
       const productComponent = this.$refs.productModal
       productComponent.openModal()
     },
+    // 更新與新增產品，modal 裡面需透過 emit 來取得外面的 updateProducts 方法
     updateProducts(item) {
       this.tempProduct = item
-      this.$http
-        .post(
-          `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/product`,
-          { data: this.tempProduct }
-        )
+      this.isLoading = true
+      let api = `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/product`
+      let http = 'post'
+      let situation = '新增產品成功'
+
+      if (!this.isNew) {
+        api = `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/product/${this.tempProduct.id}`
+        http = 'put'
+        situation = '更新產品成功'
+      }
+      this.$http[http](api, { data: this.tempProduct })
         .then((res) => {
           console.log(res)
           const productComponent = this.$refs.productModal
+          alert(`${situation}`)
           productComponent.closeModal()
-          alert('新增產品成功')
+          // this.$$httpMessageState(res, situation)
+          this.isLoading = false
           this.getProducts()
+        })
+        .catch((err) => {
+          alert(err.response.message)
+          this.isLoading = false
+          // this.$$httpMessageState(err.response)
+        })
+    },
+    openDelModal(item) {
+      this.tempProduct = { ...item }
+      const delProductComponent = this.$refs.delModal
+      delProductComponent.openModal()
+    },
+    delProduct() {
+      this.isLoading = true
+      this.$http
+        .delete(
+          `${process.env.VUE_APP_API}/v2/api/${process.env.VUE_APP_PATH}/admin/order/${this.tempProduct.id}`
+        )
+        .then((res) => {
+          console.log(res)
+          alert('刪除品項成功')
+          this.isLoading = false
+          const delProductComponent = this.$refs.delModal
+          delProductComponent.closeModal()
+        })
+        .catch((err) => {
+          alert(err.response.message)
+          this.isLoading = false
         })
     }
   },
+
   mounted() {
     this.getProducts()
     console.log(this.tempProduct)

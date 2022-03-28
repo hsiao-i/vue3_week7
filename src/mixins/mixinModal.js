@@ -1,4 +1,5 @@
-import Modal from 'bootstrap/js/dist/modal'
+// import Modal from '../node_modules/bootstrap/js/dist/modal'
+import Modal from '../../node_modules/bootstrap/js/dist/modal'
 
 export default {
   methods: {

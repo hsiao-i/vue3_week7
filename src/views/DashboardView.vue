@@ -29,6 +29,11 @@
             >
           </li>
           <li class="nav-item">
+            <router-link to="/admin/order" class="nav-link" href="#"
+              >訂單</router-link
+            >
+          </li>
+          <li class="nav-item">
             <router-link to="/" class="nav-link" href="#">回到前台</router-link>
           </li>
           <li class="nav-item">
@@ -45,7 +50,13 @@
 </template>
 
 <script>
+import emitter from '@/libs/emitter'
 export default {
+  provide() {
+    return {
+      emitter
+    }
+  },
   data() {
     return {
       checkSuccess: false

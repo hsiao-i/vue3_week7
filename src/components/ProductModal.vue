@@ -11,7 +11,8 @@
       <div class="modal-content border-0">
         <div class="modal-header bg-dark text-white">
           <h5 id="productModalLabel" class="modal-title">
-            <span>新增產品</span>
+            <span v-if="isNew">新增產品</span>
+            <span v-else>編輯產品</span>
           </h5>
           <button
             type="button"
@@ -224,17 +225,28 @@ export default {
       type: Object,
       default() {
         return {}
-      },
-      isNew: {
-        type: Boolean,
-        default: false
       }
+    },
+    isNew: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
       tempProduct: {},
       modal: ''
+    }
+  },
+  watch: {
+    product() {
+      this.tempProduct = this.product
+      if (!this.tempProduct.imageUrl) {
+        this.tempProduct.imageUrl = ''
+      }
+      if (!this.tempProduct.imagesUrl) {
+        this.tempProduct.imagesUrl = []
+      }
     }
   },
   mounted() {
